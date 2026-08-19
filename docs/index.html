@@ -378,7 +378,15 @@ function icon(name){ return `<i data-feather="${name}"></i>`; }
 
 const PACE_MULT = {easy:1.20, long:1.15, tempo:0.97, interval:0.85, strength:1.20, race:1.0};
 
-function fmtDate(d){ return d.toISOString().slice(0,10); }
+function fmtDate(d){
+  // Using local date parts, not toISOString() — toISOString() converts to
+  // UTC first, which silently shifts the date back by one day for anyone
+  // in a timezone ahead of UTC (most of Asia, Australia, parts of Africa).
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function parseISO(s){ const [y,m,day]=s.split('-').map(Number); return new Date(y,m-1,day); }
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
 function fmtShort(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
