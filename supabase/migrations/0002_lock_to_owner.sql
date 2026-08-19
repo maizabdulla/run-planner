@@ -35,17 +35,17 @@ drop policy if exists "auth read app_status"  on app_status;
 -- Single-owner policies. Replace the UUID below with your own user id.
 create policy "owner all workouts" on workouts
   for all
-  using      (auth.uid() = 'OWNER_UID_HERE'::uuid)
-  with check (auth.uid() = 'OWNER_UID_HERE'::uuid);
+  using      (auth.uid() = '437412c5-3fc6-454d-b830-e28df3836530'::uuid)
+  with check (auth.uid() = '437412c5-3fc6-454d-b830-e28df3836530'::uuid);
 
 create policy "owner all plan_meta" on plan_meta
   for all
-  using      (auth.uid() = 'OWNER_UID_HERE'::uuid)
-  with check (auth.uid() = 'OWNER_UID_HERE'::uuid);
+  using      (auth.uid() = '437412c5-3fc6-454d-b830-e28df3836530'::uuid)
+  with check (auth.uid() = '437412c5-3fc6-454d-b830-e28df3836530'::uuid);
 
 create policy "owner read app_status" on app_status
   for select
-  using (auth.uid() = 'OWNER_UID_HERE'::uuid);
+  using (auth.uid() = '437412c5-3fc6-454d-b830-e28df3836530'::uuid);
 
 -- strava_tokens intentionally still has NO client policies at all.
 -- Only Edge Functions (service role) can read or write it.
