@@ -535,6 +535,14 @@ function paceComparisonTag(w){
   if(diffSec < 0) return `<span class="pace-tag ahead">Ahead of pace</span>`;
   return `<span class="pace-tag behind">Behind pace</span>`;
 }
+function distanceComparisonTag(w){
+  if(!w.km || !w.actualKm) return '';
+  const diff = w.actualKm - w.km;
+  const tolerance = 0.3; // km — small variances aren't worth flagging
+  if(Math.abs(diff) <= tolerance) return `<span class="pace-tag ontarget">As planned</span>`;
+  if(diff > 0) return `<span class="pace-tag ahead">+${round1(diff)} km longer</span>`;
+  return `<span class="pace-tag behind">${round1(Math.abs(diff))} km shorter</span>`;
+}
 function nextOpenDate(fromDate, existingDates){
   let d = addDays(parseISO(fromDate), 1);
   for(let i=0;i<60;i++){
@@ -837,7 +845,7 @@ function renderTodayCard(w){
         <div class="today-title ${w.done?'done-text':''}">${w.title}</div>
       </div>
     </div>
-    ${w.km?`<div class="today-km">Planned: ${fmtDist(w.km)}${w.done&&w.actualKm?` · Logged: ${fmtDist(w.actualKm)} in ${fmtDuration(w.actualDurationMin)} (${fmtPaceUnit(w.actualDurationMin,w.actualKm)})${paceComparisonTag(w)}`:''}</div>`:''}
+    ${w.km?`<div class="today-km">Planned: ${fmtDist(w.km)}${w.done&&w.actualKm?` · Logged: ${fmtDist(w.actualKm)} in ${fmtDuration(w.actualDurationMin)} (${fmtPaceUnit(w.actualDurationMin,w.actualKm)})${distanceComparisonTag(w)}`:''}</div>`:''}
     ${w.done && (w.actualElevationM || w.actualHr) ? `<div class="today-km">${w.actualElevationM?`↗ ${w.actualElevationM}m elevation`:''}${w.actualElevationM&&w.actualHr?' · ':''}${w.actualHr?`♥ ${w.actualHr} bpm avg`:''}</div>` : ''}
     ${w.done && w.stravaActivityUrl ? `<div class="link-note"><a href="${w.stravaActivityUrl}" target="_blank" style="color:var(--orange);">View on Strava →</a></div>` : ''}
     <div class="today-detail">${w.detail}</div>
@@ -1054,7 +1062,7 @@ function renderDashboard(){
           <div class="badge">${icon(TYPE_ICON[w.type])}</div>
           <div class="run-log-main">
             <div class="run-log-title">${w.title} · ${fmtShort(parseISO(w.date))}</div>
-            <div class="run-log-meta">${fmtDist(w.actualKm)} · ${fmtDuration(w.actualDurationMin)} · ${fmtPaceUnit(w.actualDurationMin, w.actualKm)}${paceComparisonTag(w)} ${w.stravaActivityUrl?`· <a href="${w.stravaActivityUrl}" target="_blank">Strava ↗</a>`:''}</div>
+            <div class="run-log-meta">${fmtDist(w.actualKm)} · ${fmtDuration(w.actualDurationMin)} · ${fmtPaceUnit(w.actualDurationMin, w.actualKm)}${distanceComparisonTag(w)} ${w.stravaActivityUrl?`· <a href="${w.stravaActivityUrl}" target="_blank">Strava ↗</a>`:''}</div>
           </div>
         </div>`).join('') : '<div class="empty-note">Nothing logged yet.</div>'}
     </div>
