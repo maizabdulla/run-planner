@@ -9,8 +9,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_URL = Deno.env.get("https://mwbonejlxpiznuwpoqdp.supabase.co")!;
+const ANON_KEY = Deno.env.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Ym9uZWpseHBpem51d3BvcWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMzIyNDAsImV4cCI6MjEwMjcwODI0MH0.CceUd_ZhHMnanDzpqBXZNxf7p2X6pJz8_mx4LHej2wY")!;
 // Set this to your GitHub Pages origin, e.g. https://yourname.github.io
 // Falls back to "*" only if unset, so local testing still works.
 const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "*";
