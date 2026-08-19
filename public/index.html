@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Half Marathon Training Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C0F; --card:#15181D; --card-2:#1C2027; --line:#262B33;
+    --text:#F2F3F5; --text-soft:#9AA1AC; --text-dim:#666C77;
+    --blue:#3D8BFD; --blue-bg:rgba(61,139,253,0.15);
+    --purple:#9B7BFA; --purple-bg:rgba(155,123,250,0.15);
+    --gold:#E3AC3E; --gold-bg:rgba(227,172,62,0.15);
+    --teal:#2FBFAA; --teal-bg:rgba(47,191,170,0.15);
+    --mint:#3FCF8E; --mint-bg:rgba(63,207,142,0.15);
+    --red:#F0553B; --red-bg:rgba(240,85,59,0.18);
+    --green:#34D399; --strava:#FC4C02; --strava-bg:rgba(252,76,2,0.15);
+    --radius-lg:20px; --radius-md:14px; --radius-sm:10px;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{ margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; }
+  button{ font-family:inherit; }
+  .app-shell{ max-width:520px; margin:0 auto; min-height:100vh; position:relative; }
+  .scroll-area{ padding:18px 16px calc(96px + env(safe-area-inset-bottom)); }
+
+  .topbar{ padding:2px 2px 14px; }
+  .eyebrow{ font-size:11.5px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--blue); margin:0 0 4px; }
+  h1{ font-size:24px; font-weight:800; margin:0 0 3px; letter-spacing:-0.01em; }
+  .sub{ color:var(--text-soft); font-size:13px; margin:0; }
+  .progress-line{ height:4px; border-radius:2px; background:var(--card-2); overflow:hidden; margin-top:14px; }
+  .progress-fill{ height:100%; background:linear-gradient(90deg,var(--blue),var(--purple)); border-radius:2px; transition:width .4s ease; }
+
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:0 6px 18px rgba(0,0,0,.25); }
+  .section-title{ font-size:13px; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.05em; margin:22px 2px 10px; display:flex; align-items:center; justify-content:space-between; }
+
+  .stat-row{ display:flex; gap:10px; margin-top:16px; }
+  .stat-card{ flex:1; background:var(--card); border:1px solid var(--line); border-radius:var(--radius-md); padding:12px 10px; text-align:center; }
+  .stat-label{ font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); margin-bottom:5px; }
+  .stat-value{ font-size:16px; font-weight:800; }
+  .stat-value.accent{ color:var(--blue); }
+
+  .today-card{ padding:18px; margin-top:16px; position:relative; overflow:hidden; }
+  .today-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:linear-gradient(180deg,var(--blue),var(--purple)); }
+  .today-card.is-rest::before{ background:var(--text-dim); }
+  .today-card.is-done::before{ background:var(--green); }
+  .today-top{ display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .today-badge{ width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:17px; flex:0 0 38px; }
+  .today-eyebrow{ font-size:11px; font-weight:700; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; }
+  .today-title{ font-size:18px; font-weight:800; margin-top:1px; }
+  .today-title.done-text{ text-decoration:line-through; color:var(--text-soft); }
+  .today-km{ font-size:13px; color:var(--text-soft); margin-top:2px; }
+  .today-detail{ font-size:13px; color:var(--text-soft); line-height:1.55; margin-top:10px; }
+  .today-detail .strength-list{ margin:6px 0 0; padding-left:18px; }
+  .today-actions{ display:flex; gap:10px; margin-top:14px; }
+  .btn{ flex:1; font-weight:700; font-size:13.5px; border-radius:var(--radius-sm); padding:11px; cursor:pointer; border:1px solid var(--line); text-align:center; }
+  .btn-primary{ background:var(--blue); color:#0A0C0F; border:none; }
+  .btn-primary.done{ background:var(--green); }
+  .btn-ghost{ background:var(--card-2); color:var(--text-soft); }
+  .rest-hero{ text-align:center; padding:8px 0 4px; }
+  .rest-hero .emoji{ font-size:30px; margin-bottom:6px; }
+  .rest-hero .msg{ font-size:14px; color:var(--text-soft); }
+
+  .week-strip{ display:flex; justify-content:space-between; gap:6px; margin-top:14px; }
+  .strip-day{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 2px; border-radius:var(--radius-md); background:var(--card); border:1px solid var(--line); cursor:pointer; }
+  .strip-day.today{ border-color:var(--blue); }
+  .strip-dow{ font-size:9.5px; font-weight:700; color:var(--text-dim); letter-spacing:.04em; }
+  .strip-dot{ width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+  .strip-dot.upcoming{ background:var(--card-2); color:var(--text-dim); border:1.5px solid var(--line); }
+  .strip-dot.rest{ background:transparent; color:var(--text-dim); font-size:9px; }
+  .strip-dot.done{ background:var(--green); color:#0A0C0F; }
+  .strip-dot.today-dot{ background:var(--blue); color:#fff; }
+
+  .strava-card{ padding:16px; margin-top:14px; display:flex; align-items:center; gap:12px; }
+  .strava-badge{ width:44px; height:44px; border-radius:13px; background:var(--strava-bg); display:flex; align-items:center; justify-content:center; font-size:19px; flex:0 0 44px; }
+  .strava-text{ flex:1; min-width:0; }
+  .strava-title{ font-size:14px; font-weight:700; }
+  .strava-sub{ font-size:12.5px; color:var(--text-soft); margin-top:2px; }
+  .strava-btn{ font-size:12.5px; font-weight:700; padding:9px 14px; border-radius:10px; border:none; cursor:pointer; white-space:nowrap; }
+  .strava-btn.connect{ background:var(--strava); color:#fff; }
+  .strava-btn.sync{ background:var(--card-2); color:var(--text); border:1px solid var(--line); }
+
+  .preview-card{ padding:16px; margin-top:14px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .preview-badge{ width:44px; height:44px; border-radius:13px; background:var(--mint-bg); display:flex; align-items:center; justify-content:center; font-size:19px; flex:0 0 44px; }
+  .preview-text{ flex:1; min-width:0; }
+  .preview-title{ font-size:14px; font-weight:700; }
+  .preview-sub{ font-size:12.5px; color:var(--text-soft); margin-top:2px; }
+  .preview-arrow{ color:var(--text-dim); font-size:18px; }
+
+  .setup-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:14px 2px 16px; font-size:12.5px; color:var(--text-soft); }
+  .setup-row button{ font-size:12px; font-weight:600; color:var(--text-soft); background:var(--card); border:1px solid var(--line); border-radius:8px; padding:7px 11px; cursor:pointer; }
+  .setup-row .danger{ margin-left:auto; }
+
+  .pillbar{ display:flex; gap:6px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:6px; }
+  .pill{ flex:0 0 auto; font-size:12.5px; font-weight:700; padding:8px 14px; border-radius:999px; background:var(--card); border:1px solid var(--line); color:var(--text-soft); cursor:pointer; white-space:nowrap; }
+  .pill.current{ border-color:var(--blue); color:var(--blue); }
+
+  .week-section{ margin-top:20px; scroll-margin-top:14px; }
+  .week-head{ display:flex; align-items:baseline; justify-content:space-between; padding:0 2px 9px; }
+  .week-head .wk-title{ font-size:15px; font-weight:800; }
+  .week-head .wk-phase{ font-size:11px; color:var(--text-dim); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-left:8px; }
+  .week-head .wk-total{ font-size:12.5px; color:var(--text-soft); font-weight:600; }
+  .week-head .wk-total b{ color:var(--text); }
+
+  .day-list{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; }
+  .day-row{ display:flex; align-items:center; gap:11px; padding:13px 14px; border-bottom:1px solid var(--line); }
+  .day-row:last-child{ border-bottom:none; }
+  .day-row.today{ background:rgba(61,139,253,0.08); }
+  .day-row.done{ opacity:.68; }
+  .date-col{ flex:0 0 36px; text-align:center; }
+  .date-dow{ font-size:9.5px; font-weight:700; color:var(--text-dim); letter-spacing:.04em; }
+  .date-num{ font-size:15px; font-weight:700; margin-top:1px; }
+  .date-num.today-mark{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--blue); color:#fff; font-size:12px; }
+  .badge{ flex:0 0 34px; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:15px; }
+  .badge.easy{ background:var(--blue-bg); } .badge.interval{ background:var(--gold-bg); }
+  .badge.tempo{ background:var(--teal-bg); } .badge.long{ background:var(--purple-bg); }
+  .badge.strength{ background:var(--mint-bg); } .badge.race{ background:var(--red-bg); }
+  .row-main{ flex:1; min-width:0; cursor:pointer; }
+  .row-title{ font-size:13.5px; font-weight:600; line-height:1.25; }
+  .row-title.done-text{ text-decoration:line-through; color:var(--text-soft); }
+  .row-sub{ font-size:11.5px; color:var(--text-soft); margin-top:1px; }
+  .row-detail{ font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.55; display:none; }
+  .row-detail.open{ display:block; }
+  .row-detail .strength-list{ margin:4px 0 0; padding-left:16px; }
+  .row-actions{ flex:0 0 auto; display:flex; align-items:center; gap:6px; }
+  .icon-btn{ width:32px; height:32px; border-radius:9px; border:1px solid var(--line); background:var(--card-2); color:var(--text-soft); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .check-btn{ width:32px; height:32px; border-radius:50%; border:2px solid var(--line); background:transparent; color:transparent; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:800; }
+  .check-btn.is-done{ background:var(--green); border-color:var(--green); color:#0A0C0F; }
+  .rest-row{ display:flex; align-items:center; gap:11px; padding:13px 14px; border-bottom:1px solid var(--line); }
+  .rest-row:last-child{ border-bottom:none; }
+  .rest-label{ font-size:12.5px; color:var(--text-dim); font-weight:600; }
+  .resched-box{ display:flex; align-items:center; gap:8px; padding:0 14px 12px; margin-top:-6px; }
+  .resched-box input[type=date]{ font-family:inherit; font-size:12.5px; padding:7px 9px; border-radius:8px; border:1px solid var(--line); background:var(--card-2); color:var(--text); flex:1; }
+  .resched-box button{ font-family:inherit; font-size:12px; font-weight:700; color:#0A0C0F; background:var(--blue); border:none; border-radius:8px; padding:7px 13px; cursor:pointer; }
+
+  .intro-card{ padding:16px; margin-top:14px; }
+  .intro-card p{ font-size:13px; color:var(--text-soft); line-height:1.55; margin:0; }
+  .circuit-card{ padding:16px; margin-top:12px; }
+  .circuit-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .circuit-letter{ width:32px; height:32px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex:0 0 32px; }
+  .circuit-letter.A{ background:var(--blue-bg); color:var(--blue); }
+  .circuit-letter.B{ background:var(--purple-bg); color:var(--purple); }
+  .circuit-letter.C{ background:var(--teal-bg); color:var(--teal); }
+  .circuit-name{ font-size:14.5px; font-weight:700; }
+  .circuit-weeks{ font-size:11.5px; color:var(--text-dim); margin-top:1px; }
+  .circuit-list{ margin:0; padding-left:18px; font-size:13px; color:var(--text-soft); line-height:1.7; }
+
+  .bottom-nav{ position:fixed; left:0; right:0; bottom:0; display:flex; justify-content:center; background:rgba(10,12,15,.85); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-top:1px solid var(--line); padding:8px 12px calc(8px + env(safe-area-inset-bottom)); z-index:20; }
+  .bottom-nav-inner{ max-width:520px; width:100%; display:flex; gap:6px; }
+  .nav-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0; border-radius:12px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:10.5px; font-weight:700; }
+  .nav-btn .nav-icon{ font-size:19px; }
+  .nav-btn.active{ color:var(--blue); }
+
+  .setup-card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px; margin-top:16px; }
+  .setup-card label{ font-size:12.5px; font-weight:700; color:var(--text-soft); display:block; margin-bottom:8px; }
+  .setup-card input{ font-family:inherit; font-size:14px; padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--line); background:var(--card-2); color:var(--text); width:100%; margin-bottom:12px; }
+  .setup-card button{ font-family:inherit; font-size:14px; font-weight:700; color:#0A0C0F; background:var(--blue); border:none; border-radius:var(--radius-sm); padding:12px 16px; cursor:pointer; width:100%; }
+  .error-msg{ color:var(--red); font-size:12.5px; margin:-6px 0 12px; }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:11px; margin-top:24px; }
+  .toast{ position:fixed; bottom:calc(90px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); background:var(--card-3,#20242C); border:1px solid var(--line); color:var(--text); padding:10px 16px; border-radius:12px; font-size:13px; z-index:30; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+
+  @media (prefers-reduced-motion:reduce){ * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="app-shell"><div class="scroll-area" id="app">Loading…</div></div>
+
+<!-- Fill these in before deploying (see README.md) -->
+<script>
+  window.APP_CONFIG = {
+    SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co",
+    SUPABASE_ANON_KEY: "YOUR-SUPABASE-ANON-KEY",
+    STRAVA_CLIENT_ID: "YOUR-STRAVA-CLIENT-ID"
+  };
+</script>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const { SUPABASE_URL, SUPABASE_ANON_KEY, STRAVA_CLIENT_ID } = window.APP_CONFIG;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const REDIRECT_URI = window.location.origin + window.location.pathname;
+
+// ---------------------------------------------------------------
+// STRENGTH CIRCUITS (bodyweight only, no equipment)
+// ---------------------------------------------------------------
+const CIRCUITS = {
+  A: { name:'Lower Body & Core', items:['15 bodyweight squats','10/leg walking lunges','30s plank','15 glute bridges','20s/side side plank','15 calf raises'], rounds:'2 rounds' },
+  B: { name:'Full-Body Stability', items:['10/leg single-leg deadlifts','12 push-ups (knees down if needed)','15/side bird dogs','30s wall sit','15 superman holds','20 mountain climbers'], rounds:'2 rounds' },
+  C: { name:'Light / Recovery', items:['10 bodyweight squats','2×30s plank','10 glute bridges','10 min mobility: leg swings, hip circles, ankle rotations'], rounds:'1–2 rounds' }
+};
+function circuitDetailHTML(letter, lead){
+  const c = CIRCUITS[letter];
+  return `${lead}<br><b>Circuit ${letter} — ${c.name}</b> (${c.rounds})<ul class="strength-list">${c.items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+}
+
+// dayOffset: Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6. Fri/Sat always off.
+const WEEKS = [
+ {n:1, phase:"Base", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:5,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:7,detail:'6 × 400m @ 5K pace, 90s jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'A',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:6,detail:'15 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:8,detail:'Steady, conversational pace.'}]},
+ {n:2, phase:"Base", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:5,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:6.5,detail:'6 × 400m @ 5K pace, 75s jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'B',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:6.5,detail:'18 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:9,detail:'Steady, conversational pace.'}]},
+ {n:3, phase:"Base", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:6,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:7.5,detail:'5 × 600m @ 5K pace, 2min jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'A',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7,detail:'20 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:10,detail:'Steady, conversational pace.'}]},
+ {n:4, phase:"Recovery", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:5,detail:'Easy, conversational pace — recovery week.'},
+   {o:2,type:'interval',title:'Intervals',km:6,detail:'4 × 400m relaxed strides, full recovery.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'C',lead:'3km very easy, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:6,detail:'15 min easy @ half-marathon pace.'},
+   {o:0,type:'long',title:'Long Run',km:8,detail:'Easy effort — back off this week.'}]},
+ {n:5, phase:"Build", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:6,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:8.5,detail:'6 × 600m @ 5K pace, 2min jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'A',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7,detail:'20 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:11,detail:'Steady, conversational pace.'}]},
+ {n:6, phase:"Build", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:6,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:9,detail:'5 × 800m @ 5K pace, 2:30 jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'B',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7.3,detail:'22 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:12,detail:'Steady pace. Try your race-day fueling.'}]},
+ {n:7, phase:"Recovery", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:6,detail:'Easy, conversational pace — recovery week.'},
+   {o:2,type:'interval',title:'Intervals',km:6.5,detail:'4 × 600m @ moderate effort, full recovery.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'C',lead:'3km easy, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:6.5,detail:'18 min @ half-marathon pace.'},
+   {o:0,type:'long',title:'Long Run',km:10,detail:'Easy effort — back off this week.'}]},
+ {n:8, phase:"Peak", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:7,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:9.5,detail:'6 × 800m @ 5K pace, 2min jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'A',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7.8,detail:'25 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:14,detail:'Steady pace. Practice race-day fueling.'}]},
+ {n:9, phase:"Peak", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:7,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:10,detail:'5 × 1000m @ 10K pace, 2:30 jog recovery. 10min warm-up / 10min cool-down.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'B',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7.8,detail:'25 min @ half-marathon pace. 10min warm-up / 10min cool-down.'},
+   {o:0,type:'long',title:'Long Run',km:16,detail:'Peak long run. Full race-day fueling rehearsal.'}]},
+ {n:10, phase:"Taper", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:6,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:7.5,detail:'5 × 600m @ goal race pace, 2min jog recovery.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'C',lead:'3km easy shakeout, then:'},
+   {o:4,type:'tempo',title:'Tempo Run',km:7,detail:'20 min @ half-marathon pace.'},
+   {o:0,type:'long',title:'Long Run',km:12,detail:'Steady pace — taper begins.'}]},
+ {n:11, phase:"Taper", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:5,detail:'Easy, conversational pace.'},
+   {o:2,type:'interval',title:'Intervals',km:6,detail:'4 × 400m relaxed strides, full recovery.'},
+   {o:3,type:'strength',title:'Easy Run + Strength',km:3,circuit:'A',lead:'3km easy shakeout, then (light):'},
+   {o:4,type:'tempo',title:'Tempo Run',km:6,detail:'15 min easy @ half-marathon pace.'},
+   {o:0,type:'long',title:'Long Run',km:8,detail:'Easy effort — legs should feel fresh.'}]},
+ {n:12, phase:"Race Week", rows:[
+   {o:1,type:'easy',title:'Easy Run',km:4,detail:'Easy shakeout.'},
+   {o:2,type:'easy',title:'Easy Run + Strides',km:4,detail:'3km easy, then 4 × 200m relaxed strides.'},
+   {o:4,type:'easy',title:'Shakeout Run',km:3,detail:'Very easy — keep it short and loose.'},
+   {o:0,type:'race',title:'Race Day — Half Marathon',km:21.1,detail:'21.1km. Trust the training — go get it! 🏁'}]}
+];
+
+const DOW = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DOW1 = ['S','M','T','W','T','F','S'];
+const TYPE_ICON = {easy:'🏃',interval:'⚡',tempo:'🔥',long:'🧭',strength:'💪',race:'🏁'};
+const TYPE_LABEL = {easy:'Easy Run',interval:'Intervals',tempo:'Tempo Run',long:'Long Run',strength:'Strength',race:'Race Day'};
+
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function parseISO(s){ const [y,m,day]=s.split('-').map(Number); return new Date(y,m-1,day); }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function nextSunday(from){ const d=new Date(from); const day=d.getDay(); return day===0 ? d : addDays(d,7-day); }
+function fmtShort(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function round1(n){ return Math.round(n*10)/10; }
+function todayStr(){ return fmtDate(new Date()); }
+
+function buildDefaultWorkouts(startDateStr){
+  const start = parseISO(startDateStr);
+  const rows = [];
+  WEEKS.forEach((wk, wi) => {
+    wk.rows.forEach((row, ri) => {
+      const date = addDays(start, wi*7 + row.o);
+      const detail = row.circuit ? circuitDetailHTML(row.circuit, row.lead) : row.detail;
+      rows.push({
+        id:'w'+wk.n+'_'+ri, week:wk.n, phase:wk.phase, type:row.type,
+        title:row.title, detail, km:row.km ?? null, circuit:row.circuit || null,
+        date:fmtDate(date), done:false
+      });
+    });
+  });
+  return rows;
+}
+
+// ---------------------------------------------------------------
+// STATE
+// ---------------------------------------------------------------
+let session = null;
+let plan = null;          // { startDate, workouts: [...] }
+let stravaConnected = false;
+let tab = 'home';
+let openReschedule = null;
+let openDetail = null;
+let toastMsg = null;
+
+function showToast(msg){ toastMsg = msg; render(); setTimeout(()=>{ toastMsg=null; render(); }, 3500); }
+
+// ---------------------------------------------------------------
+// DATA LOADING
+// ---------------------------------------------------------------
+async function loadEverything(){
+  const { data: workouts, error: wErr } = await supabase.from('workouts').select('*').order('date');
+  const { data: meta } = await supabase.from('plan_meta').select('*').eq('id',1).maybeSingle();
+  const { data: status } = await supabase.from('app_status').select('*').eq('id',1).maybeSingle();
+  stravaConnected = !!status?.strava_connected;
+  if (meta && workouts && workouts.length){
+    plan = { startDate: meta.start_date, workouts };
+  } else {
+    plan = null;
+  }
+}
+
+async function createPlan(startDate){
+  const workouts = buildDefaultWorkouts(startDate);
+  await supabase.from('plan_meta').upsert({ id:1, start_date:startDate });
+  await supabase.from('workouts').delete().neq('id','');
+  await supabase.from('workouts').insert(workouts);
+  await loadEverything();
+}
+
+async function toggleDone(id){
+  const w = plan.workouts.find(x=>x.id===id);
+  const { error } = await supabase.from('workouts').update({ done: !w.done }).eq('id', id);
+  if (!error) w.done = !w.done;
+  render();
+}
+
+async function rescheduleWorkout(id, newDate){
+  const { error } = await supabase.from('workouts').update({ date: newDate }).eq('id', id);
+  if (!error){ const w = plan.workouts.find(x=>x.id===id); w.date = newDate; }
+  openReschedule = null;
+  render();
+}
+
+// ---------------------------------------------------------------
+// STRAVA
+// ---------------------------------------------------------------
+function connectStrava(){
+  const url = `https://www.strava.com/oauth/authorize?client_id=${encodeURIComponent(STRAVA_CLIENT_ID)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=activity:read_all&approval_prompt=auto`;
+  window.location.href = url;
+}
+
+async function handleStravaRedirect(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+  window.history.replaceState({}, document.title, REDIRECT_URI);
+  showToast('Connecting to Strava…');
+  const { data, error } = await supabase.functions.invoke('strava-callback', { body: { code } });
+  if (error || data?.error) showToast('Strava connection failed. Check function logs.');
+  else showToast('Strava connected ✅');
+  await loadEverything();
+  render();
+}
+
+async function syncStrava(){
+  showToast('Syncing with Strava…');
+  const { data, error } = await supabase.functions.invoke('strava-sync', { body: {} });
+  if (error || data?.error) { showToast('Sync failed. Check function logs.'); return; }
+  await loadEverything();
+  showToast(`Synced ${data.synced} run${data.synced===1?'':'s'} from Strava`);
+  render();
+}
+
+// ---------------------------------------------------------------
+// RENDER
+// ---------------------------------------------------------------
+function currentWeekNumber(){
+  if(!plan) return 1;
+  const t = todayStr();
+  let best=1, bestDiff=Infinity;
+  plan.workouts.forEach(w=>{ const diff=Math.abs(parseISO(w.date)-parseISO(t)); if(diff<bestDiff){bestDiff=diff;best=w.week;} });
+  return best;
+}
+
+function render(){
+  const app = document.getElementById('app');
+
+  if (!session){ app.innerHTML = renderLogin(); attachLoginHandlers(); removeNav(); return; }
+  if (!plan){ app.innerHTML = renderSetup(); attachSetupHandlers(); removeNav(); return; }
+
+  const curWeek = currentWeekNumber();
+  const raceWorkout = plan.workouts.find(w=>w.type==='race');
+  const daysToRace = Math.round((parseISO(raceWorkout.date)-parseISO(todayStr()))/86400000);
+
+  let body = '';
+  if (tab==='home') body = renderHome(curWeek, raceWorkout, daysToRace);
+  else if (tab==='plan') body = renderPlan(curWeek);
+  else body = renderStrength();
+
+  app.innerHTML = `
+    <div class="topbar">
+      <p class="eyebrow">${daysToRace>=0 ? daysToRace+' days to race day' : 'Race complete 🎉'}</p>
+      <h1>Half Marathon Plan</h1>
+      <p class="sub">${fmtShort(parseISO(plan.startDate))} → ${fmtShort(parseISO(raceWorkout.date))}</p>
+      <div class="progress-line"><div class="progress-fill" style="width:${((curWeek-1)/11*100).toFixed(1)}%"></div></div>
+    </div>
+    ${body}
+    <footer>Bodyweight strength · no equipment needed · Fri &amp; Sat are always off</footer>
+    ${toastMsg ? `<div class="toast">${toastMsg}</div>` : ''}
+  `;
+  attachHandlers();
+  renderNav();
+}
+
+function removeNav(){ const nav = document.querySelector('.bottom-nav'); if (nav) nav.remove(); }
+function renderNav(){
+  let nav = document.querySelector('.bottom-nav');
+  if(!nav){ nav = document.createElement('div'); nav.className='bottom-nav'; document.body.appendChild(nav); }
+  nav.innerHTML = `
+    <div class="bottom-nav-inner">
+      <button class="nav-btn ${tab==='home'?'active':''}" data-tab="home"><span class="nav-icon">🏠</span>Home</button>
+      <button class="nav-btn ${tab==='plan'?'active':''}" data-tab="plan"><span class="nav-icon">📅</span>Plan</button>
+      <button class="nav-btn ${tab==='strength'?'active':''}" data-tab="strength"><span class="nav-icon">💪</span>Strength</button>
+    </div>`;
+  nav.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ tab=btn.dataset.tab; openDetail=null; openReschedule=null; render(); window.scrollTo(0,0); });
+  });
+}
+
+// ---------- LOGIN ----------
+function renderLogin(){
+  return `
+    <div class="topbar">
+      <p class="eyebrow">Personal training plan</p>
+      <h1>Half Marathon</h1>
+      <p class="sub">Sign in with the account you created for yourself in Supabase Auth.</p>
+    </div>
+    <div class="setup-card">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@example.com">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••">
+      <div class="error-msg" id="login-error" style="display:none;"></div>
+      <button id="login-btn">Sign in</button>
+    </div>
+  `;
+}
+function attachLoginHandlers(){
+  document.getElementById('login-btn').addEventListener('click', async ()=>{
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.style.display='none';
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error){ errEl.textContent = error.message; errEl.style.display='block'; return; }
+    session = data.session;
+    await loadEverything();
+    render();
+  });
+}
+
+// ---------- SETUP ----------
+function renderSetup(){
+  const suggested = fmtDate(nextSunday(new Date()));
+  return `
+    <div class="topbar">
+      <p class="eyebrow">Personal training plan</p>
+      <h1>Half Marathon</h1>
+      <p class="sub">Easy runs, tempo, intervals, long runs, and bodyweight strength — built around a Friday/Saturday rest block.</p>
+    </div>
+    <div class="setup-card">
+      <label>When does Week 1 start? (a Sunday)</label>
+      <input type="date" id="start-date" value="${suggested}">
+      <button id="generate-plan">Build my plan</button>
+    </div>
+  `;
+}
+function attachSetupHandlers(){
+  document.getElementById('generate-plan').addEventListener('click', async ()=>{
+    const startDate = document.getElementById('start-date').value;
+    if(!startDate) return;
+    await createPlan(startDate);
+    render();
+  });
+}
+
+// ---------- HOME ----------
+function renderHome(curWeek, raceWorkout, daysToRace){
+  const t = todayStr();
+  const todayWorkout = plan.workouts.find(w=>w.date===t);
+  const curPhase = WEEKS.find(w=>w.n===curWeek).phase;
+  const thisWeekItems = plan.workouts.filter(w=>w.week===curWeek);
+  const thisWeekKm = thisWeekItems.reduce((s,w)=>s+(w.km||0),0);
+
+  const jsDow = new Date().getDay();
+  const stripStart = addDays(parseISO(t), -jsDow);
+  const strip = [];
+  for(let i=0;i<7;i++){
+    const d = fmtDate(addDays(stripStart,i));
+    const w = plan.workouts.find(x=>x.date===d);
+    strip.push({date:d, dow:DOW1[i], workout:w, isToday:d===t});
+  }
+
+  return `
+    <div class="setup-row" style="margin-top:2px;">
+      <span>Started ${plan.startDate}</span>
+      <button data-action="reset-plan" class="danger">Reset plan</button>
+    </div>
+
+    <div class="card strava-card">
+      <div class="strava-badge">🟠</div>
+      <div class="strava-text">
+        <div class="strava-title">${stravaConnected ? 'Strava connected' : 'Connect Strava'}</div>
+        <div class="strava-sub">${stravaConnected ? 'Sync pulls your recent runs in' : 'Auto-fill completed runs from your watch/phone'}</div>
+      </div>
+      ${stravaConnected
+        ? `<button class="strava-btn sync" data-action="sync-strava">Sync</button>`
+        : `<button class="strava-btn connect" data-action="connect-strava">Connect</button>`}
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-label">Week</div><div class="stat-value accent">${curWeek}/12</div></div>
+      <div class="stat-card"><div class="stat-label">Phase</div><div class="stat-value">${curPhase}</div></div>
+      <div class="stat-card"><div class="stat-label">This week</div><div class="stat-value">${round1(thisWeekKm)} km</div></div>
+    </div>
+
+    <div class="section-title">Today</div>
+    ${todayWorkout ? renderTodayCard(todayWorkout) : renderRestHero()}
+
+    <div class="section-title">This Week</div>
+    <div class="week-strip">
+      ${strip.map(s=>`
+        <div class="strip-day ${s.isToday?'today':''}" data-action="strip-jump">
+          <div class="strip-dow">${s.dow}</div>
+          <div class="strip-dot ${s.workout ? (s.workout.done?'done':(s.isToday?'today-dot':'upcoming')) : 'rest'}">
+            ${s.workout ? (s.workout.done?'✓':TYPE_ICON[s.workout.type]) : '–'}
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="section-title">Strength Training</div>
+    <div class="card preview-card" data-action="goto-strength">
+      <div class="preview-badge">💪</div>
+      <div class="preview-text">
+        <div class="preview-title">Bodyweight circuits</div>
+        <div class="preview-sub">No equipment needed — view the full strength library</div>
+      </div>
+      <div class="preview-arrow">›</div>
+    </div>
+  `;
+}
+
+function renderTodayCard(w){
+  return `
+  <div class="card today-card ${w.done?'is-done':''}">
+    <div class="today-top">
+      <div class="today-badge badge ${w.type}">${TYPE_ICON[w.type]}</div>
+      <div>
+        <div class="today-eyebrow">${TYPE_LABEL[w.type]}</div>
+        <div class="today-title ${w.done?'done-text':''}">${w.title}</div>
+      </div>
+    </div>
+    ${w.km?`<div class="today-km">${round1(w.km)} km${w.actual_distance_km?` · logged ${w.actual_distance_km} km`:''}</div>`:''}
+    <div class="today-detail">${w.detail}</div>
+    <div class="today-actions">
+      <button class="btn btn-primary ${w.done?'done':''}" data-action="toggle-done" data-id="${w.id}">${w.done?'✓ Completed':'Mark done'}</button>
+      <button class="btn btn-ghost" data-action="toggle-resched" data-id="${w.id}">Reschedule</button>
+    </div>
+    ${openReschedule===w.id ? `<div class="resched-box" style="margin-top:10px;padding:0;"><input type="date" id="resched-input-${w.id}" value="${w.date}"><button data-action="confirm-resched" data-id="${w.id}">Move</button></div>` : ''}
+  </div>`;
+}
+function renderRestHero(){
+  return `<div class="card today-card is-rest"><div class="rest-hero"><div class="emoji">😌</div><div class="msg">Rest day — recover up, back at it tomorrow.</div></div></div>`;
+}
+
+// ---------- PLAN ----------
+function renderPlan(curWeek){
+  return `
+    <div class="pillbar" id="pillbar">${WEEKS.map(w=>`<button class="pill ${w.n===curWeek?'current':''}" data-week="${w.n}">Week ${w.n}</button>`).join('')}</div>
+    ${WEEKS.map(w=>renderWeekSection(w.n)).join('')}
+  `;
+}
+function renderWeekSection(weekNum){
+  const wkMeta = WEEKS.find(w=>w.n===weekNum);
+  const items = plan.workouts.filter(w=>w.week===weekNum);
+  const t = todayStr();
+  const start = parseISO(plan.startDate);
+  const weekStart = addDays(start, (weekNum-1)*7);
+  const totalKm = items.reduce((s,w)=>s+(w.km||0),0);
+  const doneKm = items.filter(w=>w.done).reduce((s,w)=>s+(w.km||0),0);
+  const slots = [];
+  for(let o=0;o<7;o++){
+    const d = fmtDate(addDays(weekStart,o));
+    const match = items.find(it=>it.date===d);
+    slots.push(match || {rest:true, date:d, dowOffset:o});
+  }
+  return `
+  <div class="week-section" id="week-${weekNum}">
+    <div class="week-head"><div><span class="wk-title">Week ${weekNum}</span><span class="wk-phase">${wkMeta.phase}</span></div><div class="wk-total"><b>${round1(doneKm)}</b> / ${round1(totalKm)} km</div></div>
+    <div class="day-list">${slots.map(s => s.rest ? renderRest(s) : renderRow(s, t)).join('')}</div>
+  </div>`;
+}
+function renderRest(s){
+  const d = parseISO(s.date);
+  return `<div class="rest-row"><div class="date-col"><div class="date-dow">${DOW[s.dowOffset]}</div><div class="date-num">${d.getDate()}</div></div><div class="rest-label">Rest day</div></div>`;
+}
+function renderRow(w, t){
+  const d = parseISO(w.date);
+  const dow = DOW[d.getDay()];
+  const isToday = w.date===t;
+  const detailOpen = openDetail===w.id;
+  return `
+  <div class="day-row ${isToday?'today':''} ${w.done?'done':''}">
+    <div class="date-col"><div class="date-dow">${dow}</div>${isToday?`<div class="date-num today-mark">${d.getDate()}</div>`:`<div class="date-num">${d.getDate()}</div>`}</div>
+    <div class="badge ${w.type}">${TYPE_ICON[w.type]}</div>
+    <div class="row-main" data-action="toggle-detail" data-id="${w.id}">
+      <div class="row-title ${w.done?'done-text':''}">${w.title}</div>
+      <div class="row-sub">${w.km?round1(w.km)+' km':''}${w.actual_distance_km?` · Strava: ${w.actual_distance_km} km`:''}</div>
+      <div class="row-detail ${detailOpen?'open':''}">${w.detail}</div>
+    </div>
+    <div class="row-actions">
+      <button class="icon-btn" data-action="toggle-resched" data-id="${w.id}" title="Reschedule">📅</button>
+      <button class="check-btn ${w.done?'is-done':''}" data-action="toggle-done" data-id="${w.id}" title="Mark done">✓</button>
+    </div>
+  </div>
+  ${openReschedule===w.id ? `<div class="resched-box"><input type="date" id="resched-input-${w.id}" value="${w.date}"><button data-action="confirm-resched" data-id="${w.id}">Move</button></div>` : ''}
+  `;
+}
+
+// ---------- STRENGTH ----------
+function renderStrength(){
+  const weeksByCircuit = {A:[],B:[],C:[]};
+  WEEKS.forEach(w=>{ const s=w.rows.find(r=>r.circuit); if(s) weeksByCircuit[s.circuit].push(w.n); });
+  const t = todayStr();
+  const upcoming = plan.workouts.filter(w=>w.type==='strength' && w.date>=t).sort((a,b)=>a.date.localeCompare(b.date));
+  return `
+    <div class="card intro-card"><p>All strength work is bodyweight-only — no gym or accessories needed. Three circuits rotate through the plan, getting lighter in recovery and taper weeks.</p></div>
+    ${['A','B','C'].map(letter=>`
+      <div class="card circuit-card">
+        <div class="circuit-head">
+          <div class="circuit-letter ${letter}">${letter}</div>
+          <div><div class="circuit-name">Circuit ${letter} — ${CIRCUITS[letter].name}</div><div class="circuit-weeks">Used in weeks ${weeksByCircuit[letter].join(', ')} · ${CIRCUITS[letter].rounds}</div></div>
+        </div>
+        <ul class="circuit-list">${CIRCUITS[letter].items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      </div>`).join('')}
+    <div class="section-title">Upcoming Sessions</div>
+    <div class="day-list">${upcoming.slice(0,6).map(w=>renderRow(w, t)).join('') || '<div class="rest-row"><span class="rest-label">No upcoming strength sessions.</span></div>'}</div>
+  `;
+}
+
+// ---------------------------------------------------------------
+// EVENTS
+// ---------------------------------------------------------------
+function attachHandlers(){
+  const pillbar = document.getElementById('pillbar');
+  if (pillbar) pillbar.addEventListener('click', e=>{
+    const btn = e.target.closest('.pill'); if(!btn) return;
+    document.getElementById('week-'+btn.dataset.week).scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  const resetBtn = document.querySelector('[data-action="reset-plan"]');
+  if (resetBtn) resetBtn.addEventListener('click', async ()=>{
+    if(!confirm('Reset the whole plan? This deletes all workouts and progress from your database.')) return;
+    await supabase.from('workouts').delete().neq('id','');
+    await supabase.from('plan_meta').delete().eq('id',1);
+    plan=null; openReschedule=null; openDetail=null; tab='home'; render();
+  });
+
+  const connectBtn = document.querySelector('[data-action="connect-strava"]');
+  if (connectBtn) connectBtn.addEventListener('click', connectStrava);
+  const syncBtn = document.querySelector('[data-action="sync-strava"]');
+  if (syncBtn) syncBtn.addEventListener('click', syncStrava);
+
+  document.querySelectorAll('[data-action="toggle-done"]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation(); toggleDone(btn.dataset.id); });
+  });
+  document.querySelectorAll('[data-action="toggle-resched"]').forEach(btn=>{
+    btn.addEventListener('click', e=>{ e.stopPropagation(); openReschedule = openReschedule===btn.dataset.id ? null : btn.dataset.id; render(); });
+  });
+  document.querySelectorAll('[data-action="toggle-detail"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ openDetail = openDetail===el.dataset.id ? null : el.dataset.id; render(); });
+  });
+  document.querySelectorAll('[data-action="confirm-resched"]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const input = document.getElementById('resched-input-'+btn.dataset.id);
+      if (input.value) rescheduleWorkout(btn.dataset.id, input.value);
+    });
+  });
+  document.querySelectorAll('[data-action="strip-jump"]').forEach(el=>{
+    el.addEventListener('click', ()=>{ tab='plan'; render(); requestAnimationFrame(()=>{ const t=document.getElementById('week-'+currentWeekNumber()); if(t) t.scrollIntoView({behavior:'smooth', block:'start'}); }); });
+  });
+  const goStrength = document.querySelector('[data-action="goto-strength"]');
+  if (goStrength) goStrength.addEventListener('click', ()=>{ tab='strength'; render(); window.scrollTo(0,0); });
+}
+
+// ---------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------
+(async function init(){
+  const { data: { session: s } } = await supabase.auth.getSession();
+  session = s;
+  supabase.auth.onAuthStateChange((_event, s2) => { session = s2; });
+
+  if (session){
+    await loadEverything();
+    await handleStravaRedirect();
+  }
+  render();
+})();
+</script>
+</body>
+</html>

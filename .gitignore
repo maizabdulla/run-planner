@@ -1,0 +1,19 @@
+# Never commit secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local state
+.supabase/
+supabase/.branches
+supabase/.temp
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*

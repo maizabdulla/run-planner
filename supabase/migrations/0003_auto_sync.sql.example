@@ -1,0 +1,42 @@
+-- ============================================================
+-- 0003 (OPTIONAL) — Nightly automatic Strava sync
+--
+-- Runs strava-sync on a schedule so completed runs appear without you
+-- tapping Sync. A useful side effect on Supabase's free tier: the regular
+-- activity helps keep the project from being paused for inactivity.
+--
+-- BEFORE RUNNING, replace:
+--   YOUR-PROJECT-REF  -> your Supabase project ref
+--   YOUR-CRON-SECRET  -> the value you set via:
+--                        supabase secrets set CRON_SECRET=some-long-random-string
+--
+-- This file is named .example so it isn't applied automatically — rename it
+-- to 0003_auto_sync.sql (or just paste it into the SQL Editor) when ready.
+-- ============================================================
+
+create extension if not exists pg_cron;
+create extension if not exists pg_net;
+
+-- Sync every night at 03:00 UTC. Adjust the cron expression to taste:
+--   '0 3 * * *'      once daily at 03:00 UTC
+--   '0 */6 * * *'    every 6 hours
+select cron.schedule(
+  'strava-nightly-sync',
+  '0 3 * * *',
+  $$
+  select net.http_post(
+    url     := 'https://YOUR-PROJECT-REF.supabase.co/functions/v1/strava-sync',
+    headers := jsonb_build_object(
+                 'Content-Type',  'application/json',
+                 'x-cron-secret', 'YOUR-CRON-SECRET'
+               ),
+    body    := '{}'::jsonb
+  );
+  $$
+);
+
+-- Useful management queries:
+--   select * from cron.job;                          -- list scheduled jobs
+--   select cron.unschedule('strava-nightly-sync');   -- remove the job
+--   select * from cron.job_run_details
+--     order by start_time desc limit 20;             -- check recent runs
